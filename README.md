@@ -6,9 +6,17 @@ AQUASHIELD is an AI-powered water intelligence platform built to help apartment 
 
 The solution combines water-consumption analytics, machine-learning-based forecasting, deterministic risk assessment, and Gemini-powered contextual recommendations to convert raw water data into practical operational intelligence.
 
-
-
 ---
+---
+
+## Technology Stack
+
+AQUASHIELD currently uses:
+
+* **Google BigQuery** — Central analytics platform
+* **BigQuery ML** — Water-consumption prediction model
+* **Gemini on Google Cloud** — Context-aware operational recommendations
+* **Google Cloud Run** — Serverless application deployment
 
 ## Why AQUASHIELD?
 
@@ -215,20 +223,6 @@ Streamlit Dashboard
 Google Cloud Run
 ```
 
----
-
-## Technology Stack
-
-AQUASHIELD currently uses:
-
-* **Python** — Application and data-processing logic
-* **Streamlit** — Interactive water-intelligence dashboard
-* **Google BigQuery** — Central analytics platform
-* **BigQuery ML** — Water-consumption prediction model
-* **Gemini on Google Cloud** — Context-aware operational recommendations
-* **Google Cloud Run** — Serverless application deployment
-* **Altair** — Interactive data visualizations
-* **Pandas** — Data processing and transformation
 
 ---
 
