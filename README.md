@@ -2,9 +2,11 @@
 
 **AQUASHIELD — Predict. Prevent. Preserve Every Drop.**
 
-AQUASHIELD is an AI-powered water intelligence prototype designed to help residential and commercial apartment communities proactively reduce water wastage, identify abnormal consumption, detect water shortage risks, and provide actionable recommendations.
+AQUASHIELD is an AI-powered water intelligence platform built to help apartment communities conserve water by leveraging right Google Cloud services like BigQuery, BigQuery ML, Gemini, and hosted on the Google Cloud Run platform.
 
 The solution combines water-consumption analytics, machine-learning-based forecasting, deterministic risk assessment, and Gemini-powered contextual recommendations to convert raw water data into practical operational intelligence.
+
+
 
 ---
 
