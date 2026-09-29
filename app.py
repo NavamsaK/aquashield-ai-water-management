@@ -7,6 +7,8 @@ import streamlit as st
 import pandas as pd
 import altair as alt
 import html
+import calendar
+import inspect
 from google.cloud import bigquery
 from google import genai
 
@@ -254,66 +256,6 @@ st.markdown(
         margin-bottom: 4px;
     }
 
-
-    /* AquaShield tab styling */
-    div[data-baseweb="tab-list"] {
-        gap: 8px;
-        background: transparent;
-        padding: 4px 0 8px 0;
-    }
-
-    /* All tabs use the same dark AquaShield blue */
-    button[data-baseweb="tab"] {
-        min-height: 38px;
-        padding: 0 16px;
-        border-radius: 9px;
-
-        background: #0f5f8f !important;
-        border: 1px solid #0b4f78 !important;
-
-        color: white !important;
-        font-size: 0.90rem;
-        font-weight: 650;
-
-        box-shadow: 0 2px 8px rgba(15, 95, 143, 0.12);
-
-        transition: all 0.18s ease;
-    }
-
-    button[data-baseweb="tab"] * {
-        color: white !important;
-    }
-
-    button[data-baseweb="tab"]:hover {
-        background: #0b4f78 !important;
-        border-color: #083f61 !important;
-        color: white !important;
-    }
-
-    /* Selected tab is slightly stronger, not a different color family */
-    button[data-baseweb="tab"][aria-selected="true"] {
-        background: #083f61 !important;
-        border-color: #062f49 !important;
-        color: white !important;
-
-        box-shadow:
-            0 4px 12px rgba(8, 63, 97, 0.24);
-    }
-
-    button[data-baseweb="tab"][aria-selected="true"] * {
-        color: white !important;
-    }
-
-    button[data-baseweb="tab"][aria-selected="true"]:hover {
-        background: #062f49 !important;
-        color: white !important;
-    }
-
-    /* Remove Streamlit default tab underline/highlight */
-    div[data-baseweb="tab-highlight"] {
-        display: none !important;
-    }
-
     /* Streamlit metric cards */
     [data-testid="stMetric"] {
         background: rgba(255, 255, 255, 0.78);
@@ -323,7 +265,208 @@ st.markdown(
         box-shadow: 0 5px 18px rgba(14, 116, 144, 0.05);
     }
 
-    </style>
+    
+/* ===== AquaShield custom button navigation ===== */
+/* IMPORTANT: scoped only to our navigation container so Streamlit's
+   date-picker/calendar controls keep their native styling. */
+
+.st-key-aquashield_nav button[kind="secondary"],
+.st-key-aquashield_nav button[kind="primary"] {
+    border-radius: 9px !important;
+    min-height: 40px !important;
+    font-weight: 650 !important;
+    transition: all 0.15s ease !important;
+}
+
+/* Inactive navigation buttons */
+.st-key-aquashield_nav button[kind="secondary"] {
+    background-color: #0f5f8f !important;
+    border: 1px solid #0b4f78 !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 8px rgba(15, 95, 143, 0.14) !important;
+}
+
+.st-key-aquashield_nav button[kind="secondary"]:hover {
+    background-color: #0b4f78 !important;
+    border-color: #083f61 !important;
+    color: #ffffff !important;
+}
+
+/* Active navigation button */
+.st-key-aquashield_nav button[kind="primary"] {
+    background-color: #083f61 !important;
+    border: 1px solid #062f49 !important;
+    color: #ffffff !important;
+    box-shadow:
+        0 4px 12px rgba(8, 63, 97, 0.24),
+        inset 0 -3px 0 rgba(255,255,255,0.18) !important;
+}
+
+.st-key-aquashield_nav button[kind="primary"]:hover {
+    background-color: #062f49 !important;
+    border-color: #05263b !important;
+    color: #ffffff !important;
+}
+
+.st-key-aquashield_nav button[kind="secondary"] p,
+.st-key-aquashield_nav button[kind="primary"] p {
+    color: #ffffff !important;
+    font-weight: inherit !important;
+}
+
+/* Date picker: preserve native calendar behavior but make the field
+   visually consistent with the AquaShield filters. */
+div[data-testid="stDateInput"] input {
+    min-height: 38px !important;
+}
+
+div[data-testid="stDateInput"] label {
+    margin-bottom: 4px;
+}
+
+/* Keep calendar icon visible */
+div[data-testid="stDateInput"] svg {
+    opacity: 1 !important;
+}
+
+
+/* ===== AquaShield precise compact calendar ===== */
+
+.calendar-field-label {
+    font-size: 0.84rem;
+    font-weight: 500;
+    color: #1f2937;
+    margin-bottom: 4px;
+}
+
+.calendar-month-heading {
+    text-align: center;
+    font-size: 0.82rem;
+    font-weight: 750;
+    color: #0f5f8f;
+    line-height: 1.25;
+    margin: 5px 0 8px 0;
+    min-height: 20px;
+}
+
+.calendar-weekday {
+    text-align: center;
+    font-size: 0.57rem;
+    line-height: 1;
+    font-weight: 700;
+    color: #64748b;
+    padding: 0;
+}
+
+.calendar-empty-day {
+    height: 24px;
+}
+
+/* -------------------------------------------------
+   DATE TRIGGER: narrow field, no unused right space
+   ------------------------------------------------- */
+div[data-testid="stPopover"] > div > button,
+div[data-testid="stPopover"] > button {
+    width: 150px !important;
+    max-width: 150px !important;
+    min-width: 150px !important;
+    height: 36px !important;
+    min-height: 36px !important;
+    padding: 0 8px !important;
+    justify-content: flex-start !important;
+    border-radius: 8px !important;
+    white-space: nowrap !important;
+}
+
+/* Remove Streamlit's native popover chevron.
+   The calendar emoji in the label remains visible. */
+div[data-testid="stPopover"] > div > button
+span[data-testid="stIconMaterial"],
+div[data-testid="stPopover"] > button
+span[data-testid="stIconMaterial"] {
+    display: none !important;
+}
+
+/* -------------------------------------------------
+   POPOVER BODY
+   Cover multiple Streamlit DOM versions.
+   ------------------------------------------------- */
+.stPopoverBody,
+div[data-testid="stPopoverBody"],
+div[data-testid="stPopoverContent"] {
+    width: 285px !important;
+    min-width: 285px !important;
+    max-width: 285px !important;
+    padding: 8px 10px !important;
+}
+
+/* Some Streamlit versions wrap the popover in BaseWeb */
+div[data-baseweb="popover"] {
+    max-width: 285px !important;
+}
+
+div[data-baseweb="popover"] > div {
+    max-width: 285px !important;
+}
+
+/* Tight vertical layout */
+.stPopoverBody [data-testid="stVerticalBlock"],
+div[data-testid="stPopoverBody"] [data-testid="stVerticalBlock"],
+div[data-testid="stPopoverContent"] [data-testid="stVerticalBlock"] {
+    gap: 0.10rem !important;
+}
+
+/* Year / Month select controls */
+.stPopoverBody div[data-baseweb="select"] > div,
+div[data-testid="stPopoverBody"] div[data-baseweb="select"] > div,
+div[data-testid="stPopoverContent"] div[data-baseweb="select"] > div {
+    min-height: 28px !important;
+    height: 28px !important;
+    font-size: 0.68rem !important;
+}
+
+.stPopoverBody label,
+div[data-testid="stPopoverBody"] label,
+div[data-testid="stPopoverContent"] label {
+    font-size: 0.64rem !important;
+    margin-bottom: 0 !important;
+}
+
+/* Tight row spacing */
+.stPopoverBody div[data-testid="stHorizontalBlock"],
+div[data-testid="stPopoverBody"] div[data-testid="stHorizontalBlock"],
+div[data-testid="stPopoverContent"] div[data-testid="stHorizontalBlock"] {
+    gap: 0.12rem !important;
+}
+
+/* Compact day buttons */
+.stPopoverBody button[kind="secondary"],
+.stPopoverBody button[kind="primary"],
+div[data-testid="stPopoverBody"] button[kind="secondary"],
+div[data-testid="stPopoverBody"] button[kind="primary"],
+div[data-testid="stPopoverContent"] button[kind="secondary"],
+div[data-testid="stPopoverContent"] button[kind="primary"] {
+    min-width: 30px !important;
+    width: 30px !important;
+    max-width: 30px !important;
+    min-height: 24px !important;
+    height: 24px !important;
+    padding: 0 !important;
+    border-radius: 5px !important;
+    font-size: 0.61rem !important;
+    line-height: 1 !important;
+    box-shadow: none !important;
+}
+
+/* Keep overall popup short */
+.stPopoverBody,
+div[data-testid="stPopoverBody"],
+div[data-testid="stPopoverContent"] {
+    max-height: 300px !important;
+    overflow-y: auto !important;
+}
+
+</style>
     """,
     unsafe_allow_html=True,
 )
@@ -763,14 +906,206 @@ available_dates = sorted(
 
 
 with filter_col2:
-    selected_date = st.selectbox(
-        "Date",
-        available_dates,
-        format_func=lambda x: pd.Timestamp(x).strftime(
-            "%d %b %Y"
-        ),
+    if not available_dates:
+        st.error("No dates are available for the selected apartment.")
+        st.stop()
+
+    available_dates = sorted(
+        {pd.to_datetime(d).date() for d in available_dates}
+    )
+    available_date_set = set(available_dates)
+
+    # Reset calendar state when apartment changes.
+    if (
+        "calendar_apartment" not in st.session_state
+        or st.session_state.calendar_apartment != selected_apartment
+    ):
+        latest_date = max(available_dates)
+        st.session_state.calendar_apartment = selected_apartment
+        st.session_state.calendar_selected_date = latest_date
+        st.session_state.calendar_view_year = latest_date.year
+        st.session_state.calendar_view_month = latest_date.month
+        st.session_state.calendar_nonce = 0
+
+    if (
+        "calendar_selected_date" not in st.session_state
+        or st.session_state.calendar_selected_date not in available_date_set
+    ):
+        st.session_state.calendar_selected_date = max(available_dates)
+
+    if "calendar_nonce" not in st.session_state:
+        st.session_state.calendar_nonce = 0
+
+    selected_date = st.session_state.calendar_selected_date
+
+    st.markdown(
+        '<div class="calendar-field-label">Date</div>',
+        unsafe_allow_html=True,
     )
 
+    # A changing nonce makes Streamlit create a new popover identity after
+    # date selection, which closes the old open popover on rerun.
+    nonce = st.session_state.calendar_nonce
+
+    # Zero-width characters change the label identity on older Streamlit
+    # versions without changing what the user sees.
+    invisible_nonce = "\u200b" * (nonce % 5)
+
+    calendar_trigger = (
+        f"📅 {selected_date.strftime('%d %b %Y')}{invisible_nonce}"
+    )
+
+    popover_params = inspect.signature(st.popover).parameters
+    popover_kwargs = {}
+
+    # Keep the date field compact.
+    if "width" in popover_params:
+        popover_kwargs["width"] = 150
+    else:
+        popover_kwargs["use_container_width"] = False
+
+    # Dynamic key guarantees the open popover is discarded after selection.
+    if "key" in popover_params:
+        popover_kwargs["key"] = f"aquashield_calendar_{nonce}"
+
+    if "wrap" in popover_params:
+        popover_kwargs["wrap"] = False
+
+    with st.popover(
+        calendar_trigger,
+        **popover_kwargs,
+    ):
+        available_years = sorted({d.year for d in available_dates})
+
+        view_year = st.session_state.get(
+            "calendar_view_year",
+            selected_date.year,
+        )
+        view_month = st.session_state.get(
+            "calendar_view_month",
+            selected_date.month,
+        )
+
+        if view_year not in available_years:
+            view_year = selected_date.year
+
+        # ---------------------------------------------------------------
+        # Compact Month / Year controls.
+        # Explicit widget widths prevent them from forcing a huge popup.
+        # ---------------------------------------------------------------
+        year_col, month_col = st.columns(
+            [0.9, 1.15],
+            gap="small",
+        )
+
+        selectbox_params = inspect.signature(st.selectbox).parameters
+
+        with year_col:
+            year_kwargs = {}
+            if "width" in selectbox_params:
+                year_kwargs["width"] = 92
+
+            chosen_year = st.selectbox(
+                "Year",
+                available_years,
+                index=available_years.index(view_year),
+                key=f"aquashield_calendar_year_{nonce}",
+                **year_kwargs,
+            )
+
+        with month_col:
+            month_numbers = list(range(1, 13))
+            month_kwargs = {}
+            if "width" in selectbox_params:
+                month_kwargs["width"] = 112
+
+            chosen_month = st.selectbox(
+                "Month",
+                month_numbers,
+                index=view_month - 1,
+                format_func=lambda m: calendar.month_name[m],
+                key=f"aquashield_calendar_month_{nonce}",
+                **month_kwargs,
+            )
+
+        st.session_state.calendar_view_year = chosen_year
+        st.session_state.calendar_view_month = chosen_month
+
+        st.markdown(
+            f'<div class="calendar-month-heading">'
+            f'{calendar.month_name[chosen_month]} {chosen_year}'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+
+        weekday_names = ["S", "M", "T", "W", "T", "F", "S"]
+        weekday_cols = st.columns(7, gap="small")
+        for idx, weekday in enumerate(weekday_names):
+            with weekday_cols[idx]:
+                st.markdown(
+                    f'<div class="calendar-weekday">{weekday}</div>',
+                    unsafe_allow_html=True,
+                )
+
+        def _select_calendar_date(candidate_date):
+            st.session_state.calendar_selected_date = candidate_date
+            st.session_state.calendar_view_year = candidate_date.year
+            st.session_state.calendar_view_month = candidate_date.month
+
+            # Incrementing nonce changes the popover key/identity.
+            # On rerun, the previous open popover disappears.
+            st.session_state.calendar_nonce += 1
+
+        month_grid = calendar.Calendar(
+            firstweekday=6
+        ).monthdayscalendar(
+            chosen_year,
+            chosen_month,
+        )
+
+        button_params = inspect.signature(st.button).parameters
+
+        for week in month_grid:
+            day_cols = st.columns(7, gap="small")
+
+            for day_index, day_number in enumerate(week):
+                with day_cols[day_index]:
+                    if day_number == 0:
+                        st.markdown(
+                            '<div class="calendar-empty-day">&nbsp;</div>',
+                            unsafe_allow_html=True,
+                        )
+                        continue
+
+                    candidate_date = pd.Timestamp(
+                        year=chosen_year,
+                        month=chosen_month,
+                        day=day_number,
+                    ).date()
+
+                    date_available = candidate_date in available_date_set
+                    is_selected = candidate_date == selected_date
+
+                    day_kwargs = {}
+                    if "width" in button_params:
+                        day_kwargs["width"] = 30
+                    else:
+                        day_kwargs["use_container_width"] = False
+
+                    st.button(
+                        str(day_number),
+                        key=(
+                            f"calendar_day_{selected_apartment}_"
+                            f"{chosen_year}_{chosen_month}_{day_number}_{nonce}"
+                        ),
+                        disabled=not date_available,
+                        type="primary" if is_selected else "secondary",
+                        on_click=_select_calendar_date,
+                        args=(candidate_date,),
+                        **day_kwargs,
+                    )
+
+    selected_date = st.session_state.calendar_selected_date
 
 with filter_col3:
     if st.button(
@@ -885,33 +1220,60 @@ rule_explanation = safe_value(
 
 
 # ============================================================
+# SHARED GEMINI RECOMMENDATION
+# ============================================================
+
+# Generate once for the currently selected apartment/date so the same
+# recommendation is available in both Overview and AI Insights.
+gemini_recommendation = generate_gemini_recommendation(current)
+
+# Escape Gemini text before injecting into HTML cards.
+gemini_recommendation_html = html.escape(gemini_recommendation)
+
+
+# ============================================================
 # NAVIGATION TABS
 # ============================================================
 
 st.divider()
 
-(
-    overview_tab,
-    leak_tab,
-    shortage_tab,
-    forecast_tab,
-    insights_tab,
-) = st.tabs(
-    [
-        "🏠 Overview",
-        "💧 Leak Analysis",
-        "🚰 Shortage Analysis",
-        "📈 Consumption Forecast",
-        "✨ AI Insights",
+if "active_section" not in st.session_state:
+    st.session_state.active_section = "Overview"
+
+with st.container(key="aquashield_nav"):
+    nav1, nav2, nav3, nav4, nav5 = st.columns(
+        [1.0, 1.2, 1.45, 1.55, 1.0],
+        gap="small",
+    )
+
+    nav_items = [
+        ("Overview", nav1),
+        ("Leak Analysis", nav2),
+        ("Shortage Analysis", nav3),
+        ("Consumption Forecast", nav4),
+        ("AI Insights", nav5),
     ]
-)
+
+    for label, column in nav_items:
+        with column:
+            selected = st.session_state.active_section == label
+            if st.button(
+                label,
+                key=f"nav_{label.lower().replace(' ', '_')}",
+                use_container_width=True,
+                type="primary" if selected else "secondary",
+            ):
+                st.session_state.active_section = label
+                st.rerun()
+
+active_section = st.session_state.active_section
 
 
 # ============================================================
 # OVERVIEW TAB
 # ============================================================
 
-with overview_tab:
+if active_section == "Overview":
 
     st.markdown(
         '<div class="section-heading">Water Intelligence Overview</div>',
@@ -987,15 +1349,6 @@ with overview_tab:
         unsafe_allow_html=True,
     )
 
-    gemini_recommendation = generate_gemini_recommendation(
-        current
-    )
-
-    # Escape generated text before inserting it inside HTML.
-    # This keeps the recommendation card stable if Gemini returns
-    # characters such as <, > or &.
-    gemini_recommendation_html = html.escape(gemini_recommendation)
-
     st.markdown(
         f"""<div class="ai-action-card">
 <div class="ai-action-title">GEMINI WATER INTELLIGENCE</div>
@@ -1060,7 +1413,7 @@ with overview_tab:
 # LEAK ANALYSIS TAB
 # ============================================================
 
-with leak_tab:
+elif active_section == "Leak Analysis":
 
     st.markdown(
         '<div class="section-heading">💧 Leak Analysis</div>',
@@ -1273,7 +1626,7 @@ with leak_tab:
 # SHORTAGE ANALYSIS TAB
 # ============================================================
 
-with shortage_tab:
+elif active_section == "Shortage Analysis":
 
     st.markdown(
         '<div class="section-heading">🚰 Shortage Analysis</div>',
@@ -1410,7 +1763,7 @@ with shortage_tab:
 # CONSUMPTION FORECAST TAB
 # ============================================================
 
-with forecast_tab:
+elif active_section == "Consumption Forecast":
 
     st.markdown(
         '<div class="section-heading">📈 Consumption Forecast</div>',
@@ -1574,7 +1927,7 @@ with forecast_tab:
 # AI INSIGHTS TAB
 # ============================================================
 
-with insights_tab:
+elif active_section == "AI Insights":
 
     st.markdown(
         '<div class="section-heading">✨ AI Insights</div>',
