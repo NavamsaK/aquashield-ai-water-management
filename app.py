@@ -1016,7 +1016,7 @@ apartments = sorted(
 )
 
 filter_col1, filter_col2, filter_col3, filter_spacer = st.columns(
-    [1.65, 1.25, 0.95, 4.15],
+    [1.65, 1.25, 0.15, 5.10],
     vertical_alignment="bottom",
 )
 
@@ -1256,22 +1256,6 @@ with filter_col2:
 
     selected_date = st.session_state.calendar_selected_date
 
-def _refresh_aquashield_data():
-    st.cache_data.clear()
-
-    # Clear cached Gemini text too so refreshed data can generate
-    # a recommendation from the latest signals.
-    if "gemini_recommendation_cache" in st.session_state:
-        st.session_state.gemini_recommendation_cache.clear()
-
-
-with filter_col3:
-    st.button(
-        "↻ Refresh Data",
-        use_container_width=True,
-        help=TOOLTIPS["refresh"],
-        on_click=_refresh_aquashield_data,
-    )
 
 
 # ============================================================
