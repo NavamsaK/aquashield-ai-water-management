@@ -427,15 +427,32 @@ div[data-testid="stDateInput"] svg {
    ------------------------------------------------- */
 div[data-testid="stPopover"] > div > button,
 div[data-testid="stPopover"] > button {
-    width: 150px !important;
-    max-width: 150px !important;
-    min-width: 150px !important;
+    width: 136px !important;
+    max-width: 136px !important;
+    min-width: 136px !important;
     height: 36px !important;
     min-height: 36px !important;
-    padding: 0 8px !important;
-    justify-content: flex-start !important;
+    padding: 0 7px !important;
+    display: grid !important;
+    grid-template-columns: auto 28px !important;
+    align-items: center !important;
+    justify-content: stretch !important;
+    text-align: left !important;
     border-radius: 8px !important;
     white-space: nowrap !important;
+}
+
+/* Put the calendar icon in the visual centre of the free space
+   to the right of the date text. */
+div[data-testid="stPopover"] > div > button::after,
+div[data-testid="stPopover"] > button::after {
+    content: "📅";
+    grid-column: 2;
+    justify-self: center;
+    padding: 0 3px;
+    align-self: center;
+    font-size: 0.95rem;
+    line-height: 1;
 }
 
 /* Remove Streamlit's native popover chevron / down-arrow.
@@ -447,12 +464,18 @@ div[data-testid="stPopover"] > button svg {
     display: none !important;
 }
 
-/* Date label tooltip icon - visually aligned with Streamlit's help icon */
+/* Shared Apartment / Date label + tooltip styling */
 .calendar-field-label-row {
     display: flex;
     align-items: center;
     gap: 6px;
     margin-bottom: 4px;
+}
+
+.aq-help-wrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
 }
 
 .calendar-help-icon {
@@ -468,6 +491,35 @@ div[data-testid="stPopover"] > button svg {
     font-weight: 700;
     line-height: 1;
     cursor: help;
+    user-select: none;
+}
+
+.aq-help-tooltip {
+    visibility: hidden;
+    opacity: 0;
+    position: absolute;
+    z-index: 9999;
+    left: 50%;
+    top: 22px;
+    transform: translateX(-50%);
+    width: 245px;
+    padding: 8px 10px;
+    border-radius: 7px;
+    background: #ffffff;
+    color: #334155;
+    border: 1px solid #d8e3ea;
+    box-shadow: 0 5px 16px rgba(15, 95, 143, 0.12);
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1.35;
+    white-space: normal;
+    pointer-events: none;
+    transition: opacity 0.12s ease;
+}
+
+.aq-help-wrap:hover .aq-help-tooltip {
+    visibility: visible;
+    opacity: 1;
 }
 
 /* -------------------------------------------------
@@ -1021,10 +1073,28 @@ filter_col1, filter_col2, filter_col3, filter_spacer = st.columns(
 )
 
 with filter_col1:
+    apartment_help_text = html.escape(
+        TOOLTIPS["apartment"],
+        quote=True,
+    )
+
+    st.markdown(
+        f"""
+<div class="calendar-field-label-row">
+<span class="calendar-field-label">Apartment</span>
+<span class="aq-help-wrap">
+<span class="calendar-help-icon">?</span>
+<span class="aq-help-tooltip">{apartment_help_text}</span>
+</span>
+</div>
+""",
+        unsafe_allow_html=True,
+    )
+
     selected_apartment = st.selectbox(
         "Apartment",
         apartments,
-        help=TOOLTIPS["apartment"],
+        label_visibility="collapsed",
     )
 
 
@@ -1084,7 +1154,10 @@ with filter_col2:
         f"""
 <div class="calendar-field-label-row">
 <span class="calendar-field-label">Date</span>
-<span class="calendar-help-icon" title="{date_help_text}">?</span>
+<span class="aq-help-wrap">
+<span class="calendar-help-icon">?</span>
+<span class="aq-help-tooltip">{date_help_text}</span>
+</span>
 </div>
 """,
         unsafe_allow_html=True,
@@ -1099,7 +1172,7 @@ with filter_col2:
     invisible_nonce = "\u200b" * (nonce % 5)
 
     calendar_trigger = (
-        f"📅 {selected_date.strftime('%d %b %Y')}{invisible_nonce}"
+        f"{selected_date.strftime('%d %b %Y')}{invisible_nonce}"
     )
 
     popover_params = inspect.signature(st.popover).parameters
@@ -1107,7 +1180,7 @@ with filter_col2:
 
     # Keep the date field compact.
     if "width" in popover_params:
-        popover_kwargs["width"] = 150
+        popover_kwargs["width"] = 136
     else:
         popover_kwargs["use_container_width"] = False
 
